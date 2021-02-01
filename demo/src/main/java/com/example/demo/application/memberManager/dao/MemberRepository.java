@@ -23,4 +23,17 @@ public interface MemberRepository extends PagingAndSortingRepository<MemberDto, 
 	List<MemberDto> findAllByFamilyIdAndMemberAgeLessThan(String familyId, Integer memberAge);
 	
 	void deleteAll();
+	
+	
+	
+	
+	List<MemberDto> findAllByMemberIdAndMemberLevel(String memberId, Integer memberLevel);
+	
+	List<MemberDto> findAllByMemberIdAndMemberLevelLessThan(String memberId, Integer memberLevel);
+	
+	List<MemberDto> findAllByFamilyIdAndMemberLevel(String familyId, Integer memberLevel);
+	
+	List<MemberDto> findAllByFamilyIdAndMemberLevelLessThan(String familyId, Integer memberLevel);
+	
+	List<MemberDto> findAllByMemberLevelLessThan(Integer memberLevel);
 }

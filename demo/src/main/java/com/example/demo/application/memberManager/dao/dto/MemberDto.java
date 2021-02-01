@@ -53,6 +53,8 @@ public class MemberDto {
 	@DynamoDBIndexHashKey(globalSecondaryIndexNames = {"byFamilyId", "byFamilyIdAndMemberType", "byFamilyIdAndMemberAge"})
 	private String familyId;
 	
+	private Integer memberLevel;
+	
 	@DynamoDBAttribute
 	@DynamoDBTypeConverted(converter = JsonConverter.class)
 	private Map<String, Object> remark;

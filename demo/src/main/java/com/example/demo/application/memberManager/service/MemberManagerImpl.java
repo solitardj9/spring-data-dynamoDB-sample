@@ -1,6 +1,7 @@
 package com.example.demo.application.memberManager.service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -57,6 +58,7 @@ public class MemberManagerImpl implements MemberManager {
 		memberDto.setMemberAge(30);
 		memberDto.setFamilyId("ID_01");
 		memberDto.setRemark(remark);
+		memberDto.setMemberLevel(11);
 		memberRepository.save(memberDto);
 		
 		memberDto = new MemberDto();
@@ -65,6 +67,7 @@ public class MemberManagerImpl implements MemberManager {
 		memberDto.setMemberAge(29);
 		memberDto.setFamilyId("ID_01");
 		memberDto.setRemark(remark);
+		memberDto.setMemberLevel(12);
 		memberRepository.save(memberDto);
 		
 		memberDto = new MemberDto();
@@ -73,6 +76,7 @@ public class MemberManagerImpl implements MemberManager {
 		memberDto.setMemberAge(28);
 		memberDto.setFamilyId("ID_02");
 		memberDto.setRemark(remark);
+		memberDto.setMemberLevel(13);
 		memberRepository.save(memberDto);
 		
 		memberDto = new MemberDto();
@@ -81,6 +85,7 @@ public class MemberManagerImpl implements MemberManager {
 		memberDto.setMemberAge(31);
 		memberDto.setFamilyId("ID_02");
 		memberDto.setRemark(remark);
+		memberDto.setMemberLevel(14);
 		memberRepository.save(memberDto);
 		
 		LOG.info("Member Table = " + streamJoin(memberRepository.findAll()));
@@ -96,6 +101,12 @@ public class MemberManagerImpl implements MemberManager {
 		LOG.info("MemberDtos : findAllByFamilyIdAndMemberAge = " + streamJoin(memberRepository.findAllByFamilyIdAndMemberAge("ID_02", 28)));
 		
 		LOG.info("MemberDtos : findAllByFamilyIdAndMemberAgeLessThan = " + streamJoin(memberRepository.findAllByFamilyIdAndMemberAgeLessThan("ID_02", 30)));
+		
+		LOG.info("MemberDtos : findAllByMemberIdAndMemberLevel = " + streamJoin(memberRepository.findAllByMemberIdAndMemberLevel("ID_0001", 11)));
+		LOG.info("MemberDtos : findAllByMemberIdAndMemberLevelLessThan = " + streamJoin(memberRepository.findAllByMemberIdAndMemberLevelLessThan("ID_0001", 13)));
+		LOG.info("MemberDtos : findAllByFamilyIdAndMemberLevel = " + streamJoin(memberRepository.findAllByFamilyIdAndMemberLevel("ID_01", 11)));
+		LOG.info("MemberDtos : findAllByFamilyIdAndMemberLevelLessThan = " + streamJoin(memberRepository.findAllByFamilyIdAndMemberLevelLessThan("ID_01", 13)));
+		LOG.info("MemberDtos : findAllByMemberLevelLessThan = " + streamJoin(memberRepository.findAllByMemberLevelLessThan(15)));
 		
 		// delete ID_0004
 		memberRepository.delete(memberDto);
