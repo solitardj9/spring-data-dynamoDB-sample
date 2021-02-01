@@ -9,5 +9,5 @@ dynamo:
   datasource:
     url: http://192.168.0.10:8000
 
-cloud:  aws:    credentials:      access-key: 
-      secret-key:     region:      static: 
+cloud:  aws:    credentials:      access-key: 'access-key' 
+      secret-key: 'secret-key'    region:      static: 'region' 
