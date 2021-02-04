@@ -18,6 +18,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.DeleteTableRequest;
 import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
+import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
 import com.amazonaws.services.dynamodbv2.model.Projection;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.util.TableUtils;
@@ -79,12 +80,18 @@ public class AmazonDynamoDBManagerImpl implements AmazonDynamoDBManager {
 			createTableRequest = dynamoDbMapper.generateCreateTableRequest(_class).withProvisionedThroughput(new ProvisionedThroughput(1L, 1L));
 															  
 		if (provisionedThroughput != null) {
-			createTableRequest.getGlobalSecondaryIndexes().forEach(idx -> idx.setProvisionedThroughput(provisionedThroughput));
-			createTableRequest.getGlobalSecondaryIndexes().forEach(idx -> idx.setProjection(projection));
+			List<GlobalSecondaryIndex> globalSecondaryIndexes = createTableRequest.getGlobalSecondaryIndexes();
+			if (globalSecondaryIndexes != null && !globalSecondaryIndexes.isEmpty()) {
+				createTableRequest.getGlobalSecondaryIndexes().forEach(idx -> idx.setProvisionedThroughput(provisionedThroughput));
+				createTableRequest.getGlobalSecondaryIndexes().forEach(idx -> idx.setProjection(projection));
+			}
 		}
-		else
-			createTableRequest.getGlobalSecondaryIndexes().forEach(idx -> idx.withProvisionedThroughput(new ProvisionedThroughput(1L, 1L)).withProjection(new Projection().withProjectionType("ALL")));
-			
+		else {
+			List<GlobalSecondaryIndex> globalSecondaryIndexes = createTableRequest.getGlobalSecondaryIndexes();
+			if (globalSecondaryIndexes != null && !globalSecondaryIndexes.isEmpty()) {
+				createTableRequest.getGlobalSecondaryIndexes().forEach(idx -> idx.withProvisionedThroughput(new ProvisionedThroughput(1L, 1L)).withProjection(new Projection().withProjectionType("ALL")));
+			}
+		}
 		
 		boolean hasTableBeenCreated = TableUtils.createTableIfNotExists(amazonDynamoDb, createTableRequest);
 		return hasTableBeenCreated;

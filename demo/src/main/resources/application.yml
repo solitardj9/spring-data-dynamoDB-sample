@@ -7,12 +7,29 @@ spring:
   
 dynamo:
   datasource:
-    url: http://192.168.0.10:8000
+    #url: http://192.168.0.10:8000
+    url: 
 
 cloud:
   aws:
     credentials:
-      access-key: 'access-key'
-      secret-key: 'secret-key'
+      access-key: 
+      secret-key: 
     region:
-      static: 'region'
+      static: 
+      
+application:
+  apiService:
+    dynamoTable:
+      category:
+        provisionedThroughput:
+          readCapacityUnits: 10
+          writeCapacityUnits: 10
+      service:
+        provisionedThroughput:
+          readCapacityUnits: 10
+          writeCapacityUnits: 10
+      api:
+        provisionedThroughput:
+          readCapacityUnits: 10
+          writeCapacityUnits: 10

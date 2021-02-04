@@ -14,6 +14,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperConfig;
+//import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 // https://woowabros.github.io/study/2019/06/05/spring-data-dynamodb-1.html
 // https://www.baeldung.com/spring-data-dynamodb
@@ -44,13 +45,22 @@ public class AmazonDynamoDBConfig {
 	@Bean(name = "amazonDynamoDB")
 	public AmazonDynamoDB amazonDynamoDb() {
 		//
-		AWSStaticCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(
-				new BasicAWSCredentials(cloudAwsCredentialsAccessKey, cloudAwsCredentialsSecretKey));
-		
-		EndpointConfiguration endpointConfiguration = new EndpointConfiguration(dynamoDatasourceUrl, cloudAwsRegion);
-		
-		return AmazonDynamoDBClientBuilder.standard()
-				.withCredentials(credentialsProvider)
-				.withEndpointConfiguration(endpointConfiguration).build();
+		if ( (dynamoDatasourceUrl != null & !dynamoDatasourceUrl.isEmpty())
+			 & (cloudAwsRegion != null & !cloudAwsRegion.isEmpty())
+			 & (cloudAwsCredentialsAccessKey != null & !cloudAwsCredentialsAccessKey.isEmpty())
+			 & (cloudAwsCredentialsSecretKey != null & !cloudAwsCredentialsSecretKey.isEmpty())
+		   ) {
+			AWSStaticCredentialsProvider credentialsProvider = new AWSStaticCredentialsProvider(
+					new BasicAWSCredentials(cloudAwsCredentialsAccessKey, cloudAwsCredentialsSecretKey));
+			
+			EndpointConfiguration endpointConfiguration = new EndpointConfiguration(dynamoDatasourceUrl, cloudAwsRegion);
+			
+			return AmazonDynamoDBClientBuilder.standard()
+					.withCredentials(credentialsProvider)
+					.withEndpointConfiguration(endpointConfiguration).build();			
+		}
+		else {
+			return AmazonDynamoDBClientBuilder.defaultClient();
+		}
 	}
 }
