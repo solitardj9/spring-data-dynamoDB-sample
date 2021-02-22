@@ -19,14 +19,11 @@ import lombok.NoArgsConstructor;
 @DynamoDBTable(tableName = ApiTableRepository.API_TABLE_NAME)
 public class ApiDto {
 
-	@DynamoDBHashKey(attributeName = "apiId")
-	private String apiId;
-	
-	@DynamoDBAttribute(attributeName = "apiName")
-	private String apiName;			// overlap available
+	@DynamoDBHashKey(attributeName = "apiName")
+	private String apiName;			// Globally Unique Name
 	
 	@DynamoDBAttribute(attributeName = "apiKeyword")
-	private String apiKeyword;		// Globally Unique Name
+	private String apiKeyword;		// overlap available
 	
 	@DynamoDBAttribute(attributeName = "apiLabel")
 	private String apiLabel;		// Permanent Label

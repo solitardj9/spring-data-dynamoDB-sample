@@ -12,8 +12,6 @@ public interface ApiRepository extends PagingAndSortingRepository<ApiDto, String
 
 	List<ApiDto> findAll();
 	
-	List<ApiDto> findByApiName(String apiName);
-	
 	List<ApiDto> findByApiKeyword(String apiKeyword);
 	
 	List<ApiDto> findByCategoryLabel(String categoryLabel);
@@ -22,13 +20,13 @@ public interface ApiRepository extends PagingAndSortingRepository<ApiDto, String
 	
 	List<ApiDto> findByCategoryLabelAndServiceLabel(String categoryLabel, String serviceLabel);
 	
-	List<ApiDto> findByCategoryLabelAndServiceLabelAndApiName(String categoryLabel, String serviceLabel, String apiName);
+	List<ApiDto> findByApiNameAndCategoryLabelAndServiceLabel(String apiName, String categoryLabel, String serviceLabel);
 	
-	List<ApiDto> findByCategoryLabelAndServiceLabelAndApiKeyword(String categoryLabel, String serviceLabel, String apiKeyword);
+	List<ApiDto> findByApiLabelAndCategoryLabelAndServiceLabel(String apiLabel, String categoryLabel, String serviceLabel);
 	
-	void deleteByApiKeyword(String apiKeyword);		// delete specific
+	List<ApiDto> findByApiKeywordAndCategoryLabelAndServiceLabel(String apiKeyword, String categoryLabel, String serviceLabel);
 	
-	void deleteByCategoryLabelAndServiceLabelAndApiKeyword(String categoryLabel, String serviceLabel, String apiKeyword);	// delete specific
+	void deleteByCategoryLabelAndServiceLabelAndApiName(String categoryLabel, String serviceLabel, String apiName);	// delete specific
 	
 	void deleteByCategoryLabelAndServiceLabel(String categoryLabel, String serviceLabel);	// delete all in category & service
 	

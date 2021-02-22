@@ -11,11 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Api {
 
-	private String apiId;
+	private String apiName;			// Globally Unique Name
 	
-	private String apiName;			// overlap available
-	
-	private String apiKeyword;		// Globally Unique Name
+	private String apiKeyword;		// overlap available
 	
 	private String apiLabel;		// Permanent Label
 	

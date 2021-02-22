@@ -12,10 +12,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.example.demo.application.familyManager.dao.FamilyRepository;
 import com.example.demo.application.familyManager.dao.FamilyTableRepository;
 import com.example.demo.application.familyManager.dao.dto.FamilyDto;
 import com.example.demo.application.familyManager.service.FamilyManager;
+import com.google.common.collect.ImmutableMap;
 
 @Service("familyManager")
 public class FamilyManagerImpl implements FamilyManager {
@@ -39,6 +45,11 @@ public class FamilyManagerImpl implements FamilyManager {
 		else {
 			LOG.info("[FamilyManager].init : Table is exist? false");
 			familyTableRepository.createTable();
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			LOG.info("[FamilyManager].init : Table is exist? " + familyTableRepository.isExistTable());
 		}
 	}
@@ -117,6 +128,47 @@ public class FamilyManagerImpl implements FamilyManager {
 		familyDto.setRemark(remark);
 		familyRepository.save(familyDto);
 		
+		familyDto = new FamilyDto();
+		familyDto.setFamilyId("ID_04");
+		familyDto.setFamilyName("DDD");
+		familyDto.setRemark(remark);
+		DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
+		Map<String, ExpectedAttributeValue> expectedAttributes = new HashMap<>();
+		expectedAttributes.put("familyId", new ExpectedAttributeValue().withValue(new AttributeValue("ID_04")).withComparisonOperator(ComparisonOperator.NE));
+		saveExpression.setExpected(expectedAttributes);
+		familyTableRepository.putItemByCondition(familyDto, saveExpression);
+		
+//		PutItemRequest putItemRequest = new PutItemRequest().withTableName("family")
+//				.withItem(new ImmutableMap.Builder()
+//                        .put("familyId", new AttributeValue("ID_04"))
+//                        .put("familyName", new AttributeValue("AAA"))
+//                        .build())
+//                .withExpected(new ImmutableMap.Builder()
+//                        // When exists is false and the id already exists a ConditionalCheckFailedException will be thrown
+//                        .put("familyName", new ExpectedAttributeValue(false))
+//                        .build());
+//		familyTableRepository.putItemByCondition(putItemRequest);
+		
+		LOG.info("Family Table = " + streamJoin(familyRepository.findAll()));
+		
+		Map<String, AttributeValue> key = new HashMap<>();
+	    key.put("familyId", new AttributeValue().withS("ID_04"));
+	 
+	    Map<String, AttributeValue> attributeValues = new HashMap<>();
+	    attributeValues.put(":familyName", new AttributeValue().withS("AAA"));
+	 
+	    UpdateItemRequest updateItemRequest = new UpdateItemRequest()
+	            .withTableName("family")
+	            .withKey(key)
+	            .withUpdateExpression("set familyName = :familyName")
+	            //.withConditionExpression("attribute_not_exists(familyName)")
+	            .withConditionExpression("NOT contains(familyName, AAA)")
+	            .withExpressionAttributeValues(attributeValues);
+        familyTableRepository.updateItemByCondition(updateItemRequest);
+        
+        
+        
+		
 		LOG.info("Family Table = " + streamJoin(familyRepository.findAll()));
 		
 		LOG.info("FamilyDto = " + familyRepository.findById("ID_02").toString());
@@ -135,7 +187,12 @@ public class FamilyManagerImpl implements FamilyManager {
 		familyRepository.deleteAll();
 		LOG.info("Family Table = " + streamJoin(familyRepository.findAll()));
 		
-		familyTableRepository.deleteTable();
+//		familyTableRepository.deleteTable();
+//		try {
+//			Thread.sleep(3000);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
 		LOG.info("[FamilyManager].writeSamples : Table is exist? " + familyTableRepository.isExistTable());
 	}
 	

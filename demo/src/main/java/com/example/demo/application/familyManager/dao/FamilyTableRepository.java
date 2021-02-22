@@ -9,10 +9,13 @@ import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.Projection;
 import com.amazonaws.services.dynamodbv2.model.ProjectionType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.example.demo.application.familyManager.dao.dto.FamilyDto;
 import com.example.demo.system.database.dynamoDB.service.AmazonDynamoDBManager;
 import com.example.demo.system.database.dynamoDB.service.impl.AmazonDynamoDBSiEnum;
@@ -46,6 +49,21 @@ public class FamilyTableRepository {
 	public Boolean putItem(FamilyDto familyDto) {
 		//
 		return amazonDynamoDBManager.putItem(familyDto);
+	}
+	
+	public Boolean putItemByCondition(FamilyDto familyDto, DynamoDBSaveExpression saveExpression) {
+		//
+		return amazonDynamoDBManager.putItemByCondition(familyDto, saveExpression);
+	}
+	
+	public Boolean putItemByCondition(PutItemRequest putItemRequest) {
+		//
+		return amazonDynamoDBManager.putItemByCondition(putItemRequest);
+	}
+	
+	public Boolean updateItemByCondition(UpdateItemRequest updateItemRequest) {
+		//
+		return amazonDynamoDBManager.updateItemByCondition(updateItemRequest);
 	}
 	
 	public List<FamilyDto> scan() {

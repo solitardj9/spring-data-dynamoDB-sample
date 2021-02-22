@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Service {
 
-	private String serviceId;
-	
 	private String serviceName;		// Globally Unique Name
 	
 	private String serviceLabel;	// Permanent Label

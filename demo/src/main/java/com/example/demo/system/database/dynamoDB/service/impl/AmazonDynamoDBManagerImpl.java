@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
@@ -21,6 +22,8 @@ import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
 import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
 import com.amazonaws.services.dynamodbv2.model.Projection;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import com.example.demo.system.database.dynamoDB.service.AmazonDynamoDBManager;
 
@@ -96,8 +99,6 @@ public class AmazonDynamoDBManagerImpl implements AmazonDynamoDBManager {
 		boolean hasTableBeenCreated = TableUtils.createTableIfNotExists(amazonDynamoDb, createTableRequest);
 		return hasTableBeenCreated;
 	}
-	
-	
 
 	@Override
 	public Boolean deleteTable(String tableName) {
@@ -140,6 +141,41 @@ public class AmazonDynamoDBManagerImpl implements AmazonDynamoDBManager {
 			return true;
 		} catch (Exception e) {
 			LOG.error("[AmazonDynamoDBManager].putItem : error = " + e);
+			return false;
+		}
+	}
+	
+	@Override
+	public Boolean putItemByCondition(Object item, DynamoDBSaveExpression saveExpression) {
+		//
+		try {
+			dynamoDbMapper.save(item, saveExpression);
+			return true;
+		} catch (Exception e) {
+			LOG.error("[AmazonDynamoDBManager].putItemByCondition : error = " + e);
+			return false;
+		}
+	}
+	
+	@Override
+	public Boolean putItemByCondition(PutItemRequest putItemRequest) {
+		//
+		try {
+			amazonDynamoDb.putItem(putItemRequest);
+			return true;
+		} catch (Exception e) {
+			LOG.error("[AmazonDynamoDBManager].putItemByCondition : error = " + e);
+			return false;
+		}
+	}
+	
+	public Boolean updateItemByCondition(UpdateItemRequest updateItemRequest) {
+		//
+		try {
+			amazonDynamoDb.updateItem(updateItemRequest);
+			return true;
+		} catch (Exception e) {
+			LOG.error("[AmazonDynamoDBManager].updateItemByCondition : error = " + e);
 			return false;
 		}
 	}

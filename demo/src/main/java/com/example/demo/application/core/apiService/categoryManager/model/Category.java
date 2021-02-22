@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Category {
 
-	private String categoryId;
-	
 	private String categoryName;	// Globally Unique Name
 	
 	private String categoryLabel;	// Permanent Label

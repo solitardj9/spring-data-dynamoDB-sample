@@ -24,13 +24,13 @@ public interface CategoryManager {
 	
 	public Category updateCategory(String categoryName, Map<String, Object> attributes, Boolean merge) throws ExceptionCategoryBadRequest, ExceptionCategoryNotFound, ExceptionCategoryManagerFailure;
 	
-	public Category updateCategoryName(String categoryId, String categoryName) throws ExceptionCategoryBadRequest, ExceptionCategoryNotFound, ExceptionCategoryManagerFailure;
-	
-	public Boolean deleteCategory(String categoryId) throws ExceptionCategoryBadRequest, ExceptionCategoryNotFound, ExceptionCategoryManagerFailure;
+	public Boolean deleteCategory(String categoryName) throws ExceptionCategoryBadRequest, ExceptionCategoryNotFound, ExceptionCategoryManagerFailure;
 	
 	public Boolean deleteAllCategory();
 	
 	public Boolean deleteAllCategoryByProcessSide(ProcessSideEnum processSideEnum);
 	
 	public Boolean isValidCategory(String categoryName);
+	
+	public void deleteTable();
 }

@@ -1,10 +1,17 @@
 package com.example.demo.application.core.apiService.apiManager.service.dao;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.socialsignin.spring.data.dynamodb.repository.config.EnableDynamoDBRepositories;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
+import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
 import com.amazonaws.services.dynamodbv2.model.Projection;
 import com.amazonaws.services.dynamodbv2.model.ProjectionType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
@@ -41,5 +48,19 @@ public class ApiTableRepository {
 	public Boolean deleteTable() {
 		//
 		return amazonDynamoDBManager.deleteTable(API_TABLE_NAME);
+	}
+	
+	public Boolean putItemByPartitionKeyCondition(ApiDto apiDto) {
+		//
+		Map<String, ExpectedAttributeValue> expectedAttributes = new HashMap<>();
+		expectedAttributes.put("apiName", new ExpectedAttributeValue()
+													.withValue(new AttributeValue(apiDto.getApiName()))
+													.withComparisonOperator(ComparisonOperator.NE)
+							  );
+		
+		DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
+		saveExpression.setExpected(expectedAttributes);
+		
+		return amazonDynamoDBManager.putItemByCondition(apiDto, saveExpression);
 	}
 }

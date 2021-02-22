@@ -19,10 +19,7 @@ import lombok.NoArgsConstructor;
 @DynamoDBTable(tableName = CategoryTableRepository.CATEGORY_TABLE_NAME)
 public class CategoryDto {
 
-	@DynamoDBHashKey(attributeName = "categoryId")
-	private String categoryId;
-	
-	@DynamoDBAttribute(attributeName = "categoryName")
+	@DynamoDBHashKey(attributeName = "categoryName")
 	private String categoryName;	// Globally Unique Name
 	
 	@DynamoDBAttribute(attributeName = "categoryLabel")

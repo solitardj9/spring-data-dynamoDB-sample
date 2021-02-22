@@ -23,15 +23,15 @@ public interface ServiceManager {
 	
 	public List<Service> getAllService();
 
-	public List<Service> getAllServiceByCategoryLabel(String CategoryLabel) throws ExceptionServiceBadRequest;
+	public List<Service> getAllServiceByCategoryLabel(String categoryLabel) throws ExceptionServiceBadRequest;
 	
 	public Service updateService(String serviceName, Map<String, Object> attributes, Boolean merge) throws ExceptionServiceBadRequest, ExceptionServiceNotFound, ExceptionServiceManagerFailure;
 	
-	public Service updateServiceName(String serviceId, String serviceName) throws ExceptionServiceBadRequest, ExceptionServiceNotFound, ExceptionServiceManagerFailure;
-	
-	public Boolean deleteService(String serviceId) throws ExceptionServiceBadRequest, ExceptionServiceNotFound, ExceptionServiceManagerFailure;
+	public Boolean deleteService(String serviceName) throws ExceptionServiceBadRequest, ExceptionServiceNotFound, ExceptionServiceManagerFailure;
 	
 	public Boolean deleteAllService();
 	
 	public Boolean isValidService(String serviceName);
+	
+	public void deleteTable();
 }

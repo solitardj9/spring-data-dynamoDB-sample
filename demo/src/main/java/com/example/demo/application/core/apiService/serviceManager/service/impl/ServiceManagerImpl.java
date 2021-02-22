@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -89,9 +88,8 @@ public class ServiceManagerImpl implements ServiceManager {
 			attributes = new HashMap<>();
 		
 		try {
-			String serviceId = UUID.randomUUID().toString();
-			serviceDto = new ServiceDto(serviceId, serviceName, serviceLabel, categoryLabel, attributes, DEFAULT_VERSION);
-			return convertServiceDtoToService(saveServiceDtoAndGetServiceDto(serviceDto));
+			serviceDto = new ServiceDto(serviceName, serviceLabel, categoryLabel, attributes, DEFAULT_VERSION);
+			return convertServiceDtoToService(insertServiceDtoAndGetServiceDto(serviceDto));
 		} catch (Exception e) {
 			LOG.error("[ServiceManager].addService : error = " + e);
 			throw new ExceptionServiceManagerFailure();
@@ -128,7 +126,7 @@ public class ServiceManagerImpl implements ServiceManager {
 			throw new ExceptionServiceBadRequest();
 		}
 		
-		ServiceDto serviceDto = getAllServiceDtoByServiceNameAndCategoryLabel(serviceName, categoryLabel);
+		ServiceDto serviceDto = getServiceDtoByServiceNameAndCategoryLabel(serviceName, categoryLabel);
 		if (serviceDto == null) {
 			LOG.error("[ServiceManager].getServiceByServiceNameAndCategoryLabel : error = service is not exist.");
 			throw new ExceptionServiceNotFound();
@@ -150,7 +148,7 @@ public class ServiceManagerImpl implements ServiceManager {
 			throw new ExceptionServiceBadRequest();
 		}
 		
-		ServiceDto serviceDto = getAllServiceDtoByServiceLabelAndCategoryLabel(serviceLabel, categoryLabel);
+		ServiceDto serviceDto = getServiceDtoByServiceLabelAndCategoryLabel(serviceLabel, categoryLabel);
 		if (serviceDto == null) {
 			LOG.error("[ServiceManager].getServiceByServiceLabelAndCategoryLabel : error = service is not exist.");
 			throw new ExceptionServiceNotFound();
@@ -177,6 +175,11 @@ public class ServiceManagerImpl implements ServiceManager {
 	@Override
 	public List<com.example.demo.application.core.apiService.serviceManager.model.Service> getAllServiceByCategoryLabel(String categoryLabel) throws ExceptionServiceBadRequest {
 		//
+		if (categoryLabel == null || categoryLabel.isEmpty()) {
+			LOG.error("[ServiceManager].getAllServiceByCategoryLabel : error = categoryLabel is invalid.");
+			throw new ExceptionServiceBadRequest();
+		}
+		
 		List<com.example.demo.application.core.apiService.serviceManager.model.Service> services = new ArrayList<>();
 		
 		List<ServiceDto> serviceDtos = getAllServiceDtoByCategoryLabel(categoryLabel);
@@ -218,52 +221,22 @@ public class ServiceManagerImpl implements ServiceManager {
 			
 			serviceDto.setVersion(serviceDto.getVersion() + 1L);
 			
-			return convertServiceDtoToService(saveServiceDtoAndGetServiceDto(serviceDto));
+			return convertServiceDtoToService(insertOrUpdateServiceDtoAndGetServiceDto(serviceDto));
 		} catch (Exception e) {
 			LOG.error("[ServiceManager].updateService : error = " + e);
 			throw new ExceptionServiceManagerFailure();
 		}
 	}
-		
-	@Override
-	public com.example.demo.application.core.apiService.serviceManager.model.Service updateServiceName(String serviceId, String serviceName) throws ExceptionServiceBadRequest, ExceptionServiceNotFound, ExceptionServiceManagerFailure {
-		//
-		try {
-			if (serviceId == null || serviceId.isEmpty()) {
-				LOG.error("[ServiceManager].updateServiceName : error = serviceId is invalid.");
-				throw new ExceptionServiceBadRequest();
-			}
-			
-			if (serviceName == null || serviceName.isEmpty()) {
-				LOG.error("[ServiceManager].updateServiceName : error = serviceName is invalid.");
-				throw new ExceptionServiceBadRequest();
-			}
-			
-			ServiceDto serviceDto = getServiceDtoByServiceId(serviceId);
-			if (serviceDto == null) {
-				LOG.error("[ServiceManager].updateServiceName : error = service is not exist.");
-				throw new ExceptionServiceNotFound();
-			}
-			
-			serviceDto.setServiceName(serviceName);
-			serviceDto.setVersion(serviceDto.getVersion() + 1L);
-			
-			return convertServiceDtoToService(saveServiceDtoAndGetServiceDto(serviceDto));
-		} catch (Exception e) {
-			LOG.error("[ServiceManager].updateServiceName : error = " + e);
-			throw new ExceptionServiceManagerFailure();
-		}
-	}
 	
 	@Override
-	public Boolean deleteService(String serviceId) throws ExceptionServiceBadRequest, ExceptionServiceNotFound, ExceptionServiceManagerFailure {
+	public Boolean deleteService(String serviceName) throws ExceptionServiceBadRequest, ExceptionServiceNotFound, ExceptionServiceManagerFailure {
 		//
-		if (serviceId == null || serviceId.isEmpty()) {
+		if (serviceName == null || serviceName.isEmpty()) {
 			LOG.error("[ServiceManager].deleteService : error = serviceId is invalid.");
 			throw new ExceptionServiceBadRequest();
 		}
 		
-		ServiceDto serviceDto = getServiceDtoByServiceId(serviceId);
+		ServiceDto serviceDto = getServiceDtoByServiceName(serviceName);
 		if (serviceDto == null) {
 			LOG.error("[ServiceManager].deleteService : error = service is not exist.");
 			throw new ExceptionServiceNotFound();
@@ -297,15 +270,18 @@ public class ServiceManagerImpl implements ServiceManager {
 		}
 	}
 	
-	
-	
+	@Override
+	public void deleteTable() {
+		//
+		serviceTableRepository.deleteTable();
+	}
 	
 	private ServiceDto getServiceDtoByServiceName(String serviceName) {
 		//
 		try {
-			List<ServiceDto> serviceDtos = serviceRepository.findByServiceName(serviceName);
-			if (serviceDtos != null && !serviceDtos.isEmpty())
-				return serviceDtos.get(0);
+			Optional<ServiceDto> serviceDto = serviceRepository.findById(serviceName);
+			if (serviceDto.isPresent())
+				return serviceDto.get();
 			else
 				return null;
 		} catch(Exception e) {
@@ -314,21 +290,7 @@ public class ServiceManagerImpl implements ServiceManager {
 		}
 	}
 	
-	private ServiceDto getServiceDtoByServiceId(String serviceId) {
-		//
-		try {
-			Optional<ServiceDto> serviceDto = serviceRepository.findById(serviceId);
-			if (serviceDto.isPresent())
-				return serviceDto.get();
-			else
-				return null;
-		} catch(Exception e) {
-			LOG.error("[ServiceManager].getServiceDtoByServiceId : error = " + e);
-			return null;
-		}
-	}
-	
-	private ServiceDto getAllServiceDtoByServiceNameAndCategoryLabel(String serviceName, String categoryLabel) {
+	private ServiceDto getServiceDtoByServiceNameAndCategoryLabel(String serviceName, String categoryLabel) {
 		//
 		try {
 			List<ServiceDto> serviceDtos = serviceRepository.findByServiceNameAndCategoryLabel(serviceName, categoryLabel);
@@ -342,7 +304,7 @@ public class ServiceManagerImpl implements ServiceManager {
 		}
 	}
 	
-	private ServiceDto getAllServiceDtoByServiceLabelAndCategoryLabel(String serviceLabel, String categoryLabel) {
+	private ServiceDto getServiceDtoByServiceLabelAndCategoryLabel(String serviceLabel, String categoryLabel) {
 		//
 		try {
 			List<ServiceDto> serviceDtos = serviceRepository.findByServiceLabelAndCategoryLabel(serviceLabel, categoryLabel);
@@ -377,24 +339,45 @@ public class ServiceManagerImpl implements ServiceManager {
 		}
 	}
 	
-	private Boolean saveServiceDto(ServiceDto serviceDto) {
+	private Boolean insertServiceDto(ServiceDto serviceDto) {
+		//
+		try {
+			return serviceTableRepository.putItemByPartitionKeyCondition(serviceDto);
+		} catch(Exception e) {
+			LOG.error("[ServiceManager].insertServiceDto : error = " + e);
+			return false;
+		}
+	}
+	
+	private ServiceDto insertServiceDtoAndGetServiceDto(ServiceDto serviceDto) {
+		//
+		try {
+			insertServiceDto(serviceDto);
+			return getServiceDtoByServiceName(serviceDto.getServiceName());
+		} catch(Exception e) {
+			LOG.error("[ServiceManager].insertServiceDtoAndGetServiceDto : error = " + e);
+			return null;
+		}
+	}
+	
+	private Boolean insertOrUpdateServiceDto(ServiceDto serviceDto) {
 		//
 		try {
 			serviceRepository.save(serviceDto);
 			return true;
 		} catch(Exception e) {
-			LOG.error("[ServiceManager].saveServiceDto : error = " + e);
+			LOG.error("[ServiceManager].insertOrUpdateServiceDto : error = " + e);
 			return false;
 		}
 	}
 	
-	private ServiceDto saveServiceDtoAndGetServiceDto(ServiceDto serviceDto) {
+	private ServiceDto insertOrUpdateServiceDtoAndGetServiceDto(ServiceDto serviceDto) {
 		//
 		try {
-			saveServiceDto(serviceDto);
-			return getServiceDtoByServiceId(serviceDto.getServiceId());
+			insertOrUpdateServiceDto(serviceDto);
+			return getServiceDtoByServiceName(serviceDto.getServiceName());
 		} catch(Exception e) {
-			LOG.error("[ServiceManager].saveServiceDtoAndGetServiceDto : error = " + e);
+			LOG.error("[ServiceManager].insertOrUpdateServiceDtoAndGetServiceDto : error = " + e);
 			return null;
 		}
 	}
@@ -424,7 +407,7 @@ public class ServiceManagerImpl implements ServiceManager {
 	private Boolean isExist(String serviceName) {
 		//
 		try {
-			return serviceRepository.existsByServiceName(serviceName);
+			return serviceRepository.existsById(serviceName);
 		} catch(Exception e) {
 			LOG.error("[ServiceManager].isExist : error = " + e);
 			return false;
@@ -434,7 +417,7 @@ public class ServiceManagerImpl implements ServiceManager {
 	private com.example.demo.application.core.apiService.serviceManager.model.Service convertServiceDtoToService(ServiceDto serviceDto) {
 		//
 		if (serviceDto != null)
-			return new com.example.demo.application.core.apiService.serviceManager.model.Service(serviceDto.getServiceId(), serviceDto.getServiceName(), serviceDto.getServiceLabel(), serviceDto.getCategoryLabel(), serviceDto.getAttributes(), serviceDto.getVersion());
+			return new com.example.demo.application.core.apiService.serviceManager.model.Service(serviceDto.getServiceName(), serviceDto.getServiceLabel(), serviceDto.getCategoryLabel(), serviceDto.getAttributes(), serviceDto.getVersion());
 		return null;
 	}
 }

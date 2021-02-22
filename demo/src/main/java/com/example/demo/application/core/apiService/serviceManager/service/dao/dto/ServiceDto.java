@@ -18,11 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @DynamoDBTable(tableName = ServiceTableRepository.SERVICE_TABLE_NAME)
 public class ServiceDto {
-
-	@DynamoDBHashKey(attributeName = "serviceId")
-	private String serviceId;
 	
-	@DynamoDBAttribute(attributeName = "serviceName")
+	@DynamoDBHashKey(attributeName = "serviceName")
 	private String serviceName;		// Globally Unique Name
 	
 	@DynamoDBAttribute(attributeName = "serviceLabel")

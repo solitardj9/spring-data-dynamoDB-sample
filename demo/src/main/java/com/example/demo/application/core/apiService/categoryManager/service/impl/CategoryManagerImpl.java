@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -81,19 +80,12 @@ public class CategoryManagerImpl implements CategoryManager {
 			throw new ExceptionCategoryBadRequest();
 		}
 		
-		CategoryDto categoryDto = getCategoryDtoByCategoryName(categoryName);
-		if (categoryDto != null) {
-			LOG.error("[CategoryManager].addCategory : error = category is already exist.");
-			throw new ExceptionCategoryAlreayExist();
-		}
-		
 		if (attributes == null)
 			attributes = new HashMap<>();
 		
 		try {
-			String categoryId = UUID.randomUUID().toString();
-			categoryDto = new CategoryDto(categoryId, categoryName, categoryLabel, attributes, processSideEnum.getSideType(), DEFAULT_VERSION);
-			return convertCategoryDtoToCategory(saveCategoryDtoAndGetCategoryDto(categoryDto));
+			CategoryDto categoryDto = new CategoryDto(categoryName, categoryLabel, attributes, processSideEnum.getSideType(), DEFAULT_VERSION);
+			return convertCategoryDtoToCategory(insertCategoryDtoAndGetCategoryDto(categoryDto));
 		} catch (Exception e) {
 			LOG.error("[CategoryManager].addCategory : error = " + e);
 			throw new ExceptionCategoryManagerFailure();
@@ -181,7 +173,7 @@ public class CategoryManagerImpl implements CategoryManager {
 			
 			categoryDto.setVersion(categoryDto.getVersion() + 1L);
 		
-			return convertCategoryDtoToCategory(saveCategoryDtoAndGetCategoryDto(categoryDto));
+			return convertCategoryDtoToCategory(insertOrUpdateCategoryDtoAndGetCategoryDto(categoryDto));
 		} catch (Exception e) {
 			LOG.error("[CategoryManager].updateCategory : error = " + e);
 			throw new ExceptionCategoryManagerFailure();
@@ -189,44 +181,14 @@ public class CategoryManagerImpl implements CategoryManager {
 	}
 	
 	@Override
-	public Category updateCategoryName(String categoryId, String categoryName) throws ExceptionCategoryBadRequest, ExceptionCategoryNotFound, ExceptionCategoryManagerFailure {
+	public Boolean deleteCategory(String categoryName) throws ExceptionCategoryBadRequest, ExceptionCategoryNotFound, ExceptionCategoryManagerFailure {
 		//
-		try {
-			if (categoryId == null || categoryId.isEmpty()) {
-				LOG.error("[CategoryManager].updateCategoryName : error = categoryId is invalid.");
-				throw new ExceptionCategoryBadRequest();
-			}
-			
-			if (categoryName == null || categoryName.isEmpty()) {
-				LOG.error("[CategoryManager].updateCategoryName : error = categoryName is invalid.");
-				throw new ExceptionCategoryBadRequest();
-			}
-			
-			CategoryDto categoryDto = getCategoryDtoByCategoryId(categoryId);
-			if (categoryDto == null) {
-				LOG.error("[CategoryManager].updateCategoryName : error = category is not exist.");
-				throw new ExceptionCategoryNotFound();
-			}
-			
-			categoryDto.setCategoryName(categoryName);
-			categoryDto.setVersion(categoryDto.getVersion() + 1L);
-			
-			return convertCategoryDtoToCategory(saveCategoryDtoAndGetCategoryDto(categoryDto));
-		} catch (Exception e) {
-			LOG.error("[CategoryManager].updateCategoryName : error = " + e);
-			throw new ExceptionCategoryManagerFailure();
-		}
-	}
-
-	@Override
-	public Boolean deleteCategory(String categoryId) throws ExceptionCategoryBadRequest, ExceptionCategoryNotFound, ExceptionCategoryManagerFailure {
-		//
-		if (categoryId == null || categoryId.isEmpty()) {
-			LOG.error("[CategoryManager].deleteCategory : error = categoryId is invalid.");
+		if (categoryName == null || categoryName.isEmpty()) {
+			LOG.error("[CategoryManager].deleteCategory : error = categoryName is invalid.");
 			throw new ExceptionCategoryBadRequest();
 		}
 		
-		CategoryDto categoryDto = getCategoryDtoByCategoryId(categoryId);
+		CategoryDto categoryDto = getCategoryDtoByCategoryName(categoryName);
 		if (categoryDto == null) {
 			LOG.error("[CategoryManager].deleteCategory : error = category is not exist.");
 			throw new ExceptionCategoryNotFound();
@@ -266,30 +228,22 @@ public class CategoryManagerImpl implements CategoryManager {
 		}
 	}
 	
+	@Override
+	public void deleteTable() {
+		//
+		categoryTableRepository.deleteTable();
+	}
+	
 	private CategoryDto getCategoryDtoByCategoryName(String categoryName) {
 		//
 		try {
-			List<CategoryDto> categoryDtos = categoryRepository.findByCategoryName(categoryName);
-			if (categoryDtos != null && !categoryDtos.isEmpty())
-				return categoryDtos.get(0);
-			else
-				return null;
-		} catch(Exception e) {
-			LOG.error("[CategoryManager].getCategoryDtoByCategoryName : error = " + e);
-			return null;
-		}
-	}
-	
-	private CategoryDto getCategoryDtoByCategoryId(String categoryId) {
-		//
-		try {
-			Optional<CategoryDto> categoryDto = categoryRepository.findById(categoryId);
+			Optional<CategoryDto> categoryDto = categoryRepository.findById(categoryName);
 			if (categoryDto.isPresent())
 				return categoryDto.get();
 			else
 				return null;
 		} catch(Exception e) {
-			LOG.error("[CategoryManager].getCategoryDtoByCategoryId : error = " + e);
+			LOG.error("[CategoryManager].getCategoryDtoByCategoryName : error = " + e);
 			return null;
 		}
 	}
@@ -315,24 +269,46 @@ public class CategoryManagerImpl implements CategoryManager {
 		}
 	}
 	
-	private Boolean saveCategoryDto(CategoryDto categoryDto) {
+	private Boolean insertCategoryDto(CategoryDto categoryDto) {
+		//
+		try {
+			return categoryTableRepository.putItemByPartitionKeyCondition(categoryDto);
+		} catch(Exception e) {
+			LOG.error("[CategoryManager].insertCategoryDto : error = " + e);
+			return false;
+		}
+		
+	}
+	
+	private CategoryDto insertCategoryDtoAndGetCategoryDto(CategoryDto categoryDto) {
+		//
+		try {
+			insertCategoryDto(categoryDto);
+			return getCategoryDtoByCategoryName(categoryDto.getCategoryName());
+		} catch(Exception e) {
+			LOG.error("[CategoryManager].insertCategoryDtoAndGetCategoryDto : error = " + e);
+			return null;
+		}
+	}
+	
+	private Boolean insertOrUpdateCategoryDto(CategoryDto categoryDto) {
 		//
 		try {
 			categoryRepository.save(categoryDto);
 			return true;
 		} catch(Exception e) {
-			LOG.error("[CategoryManager].saveCategoryDto : error = " + e);
+			LOG.error("[CategoryManager].insertOrUpdateCategoryDto : error = " + e);
 			return false;
 		}
 	}
 	
-	private CategoryDto saveCategoryDtoAndGetCategoryDto(CategoryDto categoryDto) {
+	private CategoryDto insertOrUpdateCategoryDtoAndGetCategoryDto(CategoryDto categoryDto) {
 		//
 		try {
-			saveCategoryDto(categoryDto);
-			return getCategoryDtoByCategoryId(categoryDto.getCategoryId());
+			insertOrUpdateCategoryDto(categoryDto);
+			return getCategoryDtoByCategoryName(categoryDto.getCategoryName());
 		} catch(Exception e) {
-			LOG.error("[CategoryManager].saveCategoryDtoAndGetCategoryDto : error = " + e);
+			LOG.error("[CategoryManager].insertOrUpdateCategoryDtoAndGetCategoryDto : error = " + e);
 			return null;
 		}
 	}
@@ -373,7 +349,7 @@ public class CategoryManagerImpl implements CategoryManager {
 	private Boolean isExist(String categoryName) {
 		//
 		try {
-			return categoryRepository.existsByCategoryName(categoryName);
+			return categoryRepository.existsById(categoryName);
 		} catch(Exception e) {
 			LOG.error("[CategoryManager].isExist : error = " + e);
 			return false;
@@ -383,7 +359,7 @@ public class CategoryManagerImpl implements CategoryManager {
 	private Category convertCategoryDtoToCategory(CategoryDto categoryDto) {
 		//
 		if (categoryDto != null)
-			return new Category(categoryDto.getCategoryId(), categoryDto.getCategoryName(), categoryDto.getCategoryLabel(), categoryDto.getAttributes(), categoryDto.getProcessSide(), categoryDto.getVersion());
+			return new Category(categoryDto.getCategoryName(), categoryDto.getCategoryLabel(), categoryDto.getAttributes(), categoryDto.getProcessSide(), categoryDto.getVersion());
 		return null;
 	}
 }
